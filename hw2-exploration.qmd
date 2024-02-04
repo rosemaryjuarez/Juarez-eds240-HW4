@@ -1,0 +1,112 @@
+---
+title: HW2: exploration
+author: Rosemary Juarez
+---
+
+
+```{r}
+#using these three packages
+library(tidyverse)
+library(janitor)
+library(ggridges)
+```
+
+```{r, message = FALSE}
+
+#reading in my data from my local computer
+la_crimes <- read_csv("C:/Users/rosem/Documents/MEDS/Courses/EDS-240/HW/Juarez-eds240-HW4/data/Crime_Data_from_2020_to_Present_20240131.csv")
+```
+## Data wrangling
+currently still a work-in progress as I continue on
+```{r}
+
+#clean up all the column names
+la_crimes <- clean_names(la_crimes)
+
+#removing zeros in the `vict_age` column, as 0, -1, and -2 indicated that no age was recorded
+la_crimes <- la_crimes %>% 
+  filter(vict_age > 0)
+
+#I want to incllude all values for victim sex, however to first test out my plots, i want to view just male and female for simplicity
+la_crimes_test <- la_crimes %>% 
+  filter(vict_sex %in% c('M', 'F'))
+
+```
+
+
+
+
+## Data Exploration
+
+here I will be exploring my data for a bit. May not be the neatest, but essential for building my three preliminary plots before polishing up one plot
+
+```{r}
+glimpse(la_crimes)
+
+unique(la_crimes$area_name)
+
+unique(la_crimes$vict_sex)
+```
+
+
+## Building plots
+
+```{r}
+
+#=====================================
+          #plot 1: general audience
+#======================================
+
+#exploring what interest me most: the age of victims. I will use a bar chart to see the distribution of victim age
+la_crimes %>% 
+  ggplot(aes(x = vict_age)) + 
+  geom_bar()
+
+
+```
+
+
+```{r}
+#=====================================
+          #plot 2: technical graph
+#======================================
+
+
+la_crimes_test %>% 
+  ggplot(aes(x = vict_age, fill = vict_sex)) + 
+  geom_bar(position = 'dodge2') +
+  scale_fill_manual(values = c('seagreen', 'purple'))
+
+```
+
+
+
+```{r}
+#=====================================
+          #plot 3: for presentation
+#======================================
+
+#map three focuses on the areas with the most victim age
+la_crimes_test %>%
+  ggplot(aes(x = area_name, y = vict_age)) +
+  geom_col() +
+  coord_flip()
+
+
+
+
+```
+
+1. What have you learned about your data? Have any potentially interesting patterns emerged? (5-8 sentences)
+
+from my premilinary visual analysis, it seems like i have a lot of categorical variables, which is fun for presentation and general audience, but trickier for technical reports. The only way i can see it working in reports is if I were to do mostly counts. That could be helpful, but I cant think of other exploratory analysis that would be deemed more techincal. I definitly find all of this data useful for presentation and general audience.
+
+2. In HW #1, you outlined some questions that you wanted to answer using these data. Have you made any strides towards answering those questions? If yes, how so? If no, what next steps do you need to take (e.g. I need to create X plot type, I still need to track down Y data, I need to restructure existing data so that you can visualize it in Z ways, etc.)? (8-12 sentences)
+
+From my outlined questions, It seems like i would need to rethink my plan. I have so much categorical data, so i will have to do a full join with another data set to balance it out. I am thinking about including temperature data, and join by date. I think the temperature data could be useful for creating scatterplots and regression lines. My main question in that case would change from exploring the social aspect of crime to how temperature can play a role in crimes in la. I can also include a map to further help with my analysis.
+
+
+3. What challenges do you foresee encountering with your data? These can be data wrangling and / or visualization challenges. (4-6 sentences)
+
+I think like i mentioned previously, my biggest challenge will be figuring out how to work with so much categorical data. My solution will likely be to join in some temperature data to help balance things out. I will also include a mapping aspect to help spatially visualize. I will also have to deal with multiple NA values, as there are a lot.
+

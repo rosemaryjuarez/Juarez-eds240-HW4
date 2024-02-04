@@ -1,0 +1,20 @@
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+```{r, message = FALSE}
+la_crimes <- read_csv("C:/Users/rosem/Documents/MEDS/Courses/EDS-240/HW/Juarez-eds240-HW4/data/Crime_Data_from_2020_to_Present_20240131.csv")
+```
+
+```{r}
+head(la_crimes)
+la_crimes <- clean_names(la_crimes)
+
+```
+```{r}
+la_crimes %>% 
+  group_by(area_name) %>% 
+summarise()
+```
+
