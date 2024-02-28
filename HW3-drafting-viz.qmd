@@ -1,0 +1,331 @@
+---
+title: 'HW2: exploration'
+subtitle: "Exploring Los Angeles County crimes data from 2020-2024"
+author: 'Rosemary Juarez'
+date: "2/28/2024"
+format:
+  html:
+    embed-resources: true
+---
+
+```{r chunk options}
+# setting my chunk options
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+```
+
+## HW 3 overview:
+
+For HW 3, i plan to go over option 2, which is creating an info-graphic using data I chose and displaying three different charts.
+
+My question for this project is: **What is the general crime statistics in LA County?**
+
+My question changed from the previous question I had, so now my question is much more broad. The reason it is broad is for one reason:
+
+I'm still looking for what story angle I want to go with, whether its a focus on teen stats, weapon stats, or victim stats. I'm still undecided, so I'm hoping that by HW 4, I will have decided on an angle for storytelling.
+
+Previously, my worries were that i didnt have enough numerical variables. I have since realized that it is okay, as my personal goal of this project is to explore and reveal what story i can uncover from this dataset.
+
+for the variables I plan on using, It will be victim sex/age/race, weapon description, crime description, area name(city), and date. Those 7 variables should give me enough data to uncover multiple stories from here.
+
+So far, the graphs i produced for this data set is bar charts and pie charts. Using primarily tidyverse and ggplot2, I created three bar charts and two pie charts. all the bar charts are counts of either weapon description, crime description, or gun-usage description. I calculated that a hand help gun is the most common gun to use in crimes. Fun fact: it looks like a gun, so hopefully i can polish it up by HW 4 to have that gun-like effect. For my pie charts, I decided to create rings to represent handcuffs. I explore both the race count and area name count to create my pie chart. I have found that Hispanics and 77th street in downtown LA have the most crime reports.
+
+I'm still debating whether to change one of my two charts into a bar chart, as I want to have a bit more variance. However i would rather go with another option of adding another viz to my info-graphic, essentially creating 4 plots.
+
+As for inspiration, I decided to go with two options:
+
+-   tidytuesday Dr. Who viz ([link](https://github.com/thedivtagguy/tidytuesday/tree/master/2023/week-48-nov-2023-doctor-who))
+
+    -   I really like that they imported images from another app to add to R. I use procreate(drawing app) a lot for my logo designs, so having the option to add some of my designs to my viz in R is a possibility i didnt consider before seeing this example
+
+-   UFO sightings viz ([link](https://github.com/doehm/tidytues?tab=readme-ov-file#week-25-ufo-sightings))
+
+    -   I really like how the theme really plays up with aliens, the dark night, and green-tech font. I think the way they managed to get the theme very well is what I hope to really encapsulate with my data viz.
+
+As for my data viz design idea, I wanted to create a detective investigation pinboard, and have it look like it is a part of an investigation. A rough sketch is ![down below!](C:/Users/rosem/Downloads/hw3_roughdraft.jpg){fig-alt="Showing an investigation pinboard. Pinboard is brown, with three main body parts to represent my data. big title in the top middle says 'LA Crimes'. I also have several large dots to represent more viz to add and red string to show all the data connections to each other."}
+
+Challenges I encountered while creating my data viz is my rough draft not looking very good at all. Since I am currently drawing and exporting all the images and colors I will use for my viz from procreate (similar to the Dr. Who viz), My plots will look plain. Im hoping however that by HW 4, my info-graphic should be completed and look much better.
+
+Packages I will be using for my project:
+
+```{r packages}
+#using these three packages
+library(tidyverse) #main use for data wrangling
+library(janitor) #helps with clean names for my variables
+library(lubridate) #need this for my time data. Mostly for wrangling time data
+library(stringr) #this helps with dealing with strings and characters in my data
+library(magick) #this calls in images
+library(gridExtra) #organizing my plot
+library(patchwork) #organizing my plots even better
+```
+
+reading in my CSV on LA Crimes from 2020 - Present (Jan 18 2024)
+
+```{r data}
+#reading in my data from my local computer
+la_crimes <- read_csv("C:/Users/rosem/Documents/MEDS/Courses/EDS-240/HW/Juarez-eds240-HW4/data/Crime_Data_from_2020_to_Present_20240131.csv") %>% 
+  clean_names()
+
+```
+
+```{r data data wrangling}
+#==============================================================
+#                 data wrangling
+# =============================================================
+
+#will create a new column that describes the main 5 race categories. for reference:
+#c(B - Black C - Chinese D - Cambodian F - Filipino G - Guamanian H - Hispanic/Latin/Mexican I - American Indian/Alaskan Native J - Japanese K - Korean L - Laotian O - Other P - Pacific Islander S - Samoan U - Hawaiian V - Vietnamese W - White X - Unknown Z - Asian Indian)
+
+asian_countries <-  c('A', 'C', 'D', 'F',"L", 'J', 'K', 'V', 'Z')
+
+
+# Define a named vector mapping the current categories to their full names
+race_names <- c(
+  "A" = "Asian",
+  "B" = "Black",
+  "W" = "White",
+  "H" = "Hispanic",
+  "I" = "Native American/Alaska",
+  "P" = "pacific Islander"
+)
+
+#------------------------
+#   regualar wrangling
+# -----------------------
+
+#creating a cleaned-up version of la_crimes. keeping the name so that i have less names to remember
+
+la_crimes <- la_crimes %>% 
+  #removing zeros in the `vict_age` column, as 0, -1, and -2 indicated that no age was recorded.
+  filter(vict_age > 0 ) %>% 
+  #I want to incllude all values for victim sex, however to first test out my plots, i want to view just male and female for simplicity
+  #
+  #
+  filter(vict_sex %in% c('M', 'F')) %>% 
+  #Asian countries will be agreggated to one.
+  
+
+
+#-----------------------------
+#   asian country aggregation
+#-----------------------------
+
+  #Asian countries will be aggregated to one. using case_when as it will help with selecting and reassigning asian countries to the letter "A" if the list of values i provided above are within asian_countries
+  mutate(race_category = case_when(
+    vict_descent %in% asian_countries ~ "A",
+    TRUE ~ vict_descent  # Keep non-Asian races unchanged, as true will allow for the row that do not have an asian country to remain the same within the new "race_category" column.
+  )) %>% 
+
+  #filter for the top 6 race categories
+  filter(race_category %in% c('B', 'H', 'W', 'I', 'P', 'A')) %>% 
+
+# Rename the categories in the race column
+  mutate(race = case_match(race_category, "B" ~ "Black",
+                           "H" ~ "Hispanic",
+                           "W"~ "White",
+                           "I" ~ "Native American/Alaska",
+                           "P" ~ "Pacific Islanders",
+                           "A" ~ "asian"
+                           ))
+
+
+```
+
+```{r}
+#remove time component
+la_crimes <- la_crimes %>% 
+  mutate(date_occ = as.Date(mdy_hms(date_occ)))
+
+la_crimes <- la_crimes %>% 
+  mutate(month = month(date_occ))
+
+la_crimes$month <- as.factor(la_crimes$month)
+la_crimes$vict_age <- as.factor(la_crimes$vict_age)
+
+
+
+la_crimes <- la_crimes %>% 
+   mutate(month = factor(month,
+                                levels = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                                labels = c('January', 'February', 'March', 'April','May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'))
+)
+
+```
+
+```{r}
+#====================================
+#     new data frames for plotting
+#====================================
+
+#creating crime description
+crime_desc <- la_crimes %>% 
+  group_by(crm_cd_desc) %>%
+  summarise(count = n()) %>%
+  arrange((desc(count)), .by_group = TRUE) %>% 
+  ungroup()
+
+
+#crime description by sex
+crime_desc_sex <- la_crimes %>% 
+  group_by(crm_cd_desc, vict_sex) %>%
+  summarise(count = n()) %>% 
+  slice_max(order_by = count, n = 10) %>% 
+  group_by(crm_cd_desc) %>% 
+  ungroup()
+
+#creating weapon description
+weap_desc <- la_crimes %>% 
+  group_by(weapon_desc) %>%
+  summarise(count = n()) %>%
+  arrange((desc(count)), .by_group = TRUE) %>% 
+  na.omit() %>% 
+
+#filtering those that are unknown or not physical
+
+  filter(!grepl("UNKNOWN", weapon_desc)) %>% 
+  filter(!grepl("OTHER", weapon_desc)) %>% 
+  filter(!grepl("VERBAL", weapon_desc))
+
+#of those weapons, which ones are guns?
+weap_gun <- weap_desc %>% 
+  filter(grepl("GUN", weapon_desc) | grepl("PISTOL", weapon_desc) | grepl("RIFLE", weapon_desc))
+  
+
+```
+
+
+## Now we create our data viz
+
+
+```{r}
+top_10_bar <- crime_desc %>% 
+  slice(1:10)%>% 
+  ggplot( aes(x = fct_reorder(crm_cd_desc, count), y = count)) +
+  geom_col(fill = "midnightblue") +
+  coord_flip() +
+  theme_classic()+
+  labs(title = "top 10 crimes"
+       
+       ) +
+  theme(axis.title.y = element_blank(),
+        axis.line.y = element_blank(), 
+        axis.ticks.y = element_blank()
+        
+        
+        )
+
+```
+
+```{r}
+top_5_weap <- weap_desc %>% 
+  slice(1:5)%>% 
+  ggplot( aes(x = fct_reorder(weapon_desc, count), y = count)) +
+  geom_col(fill = "midnightblue") +
+  geom_text(aes(label = count), hjust = -.2) +
+  coord_flip() +
+  theme_classic()+
+  labs(title = "Top 5 weapons"
+       
+       ) +
+  scale_y_continuous(limits = c(0, 200000)) +
+  theme(axis.title.y = element_blank(),
+        axis.line.y = element_blank(), 
+        axis.ticks.y = element_blank()
+        
+        
+        )
+```
+
+```{r fig.width= 12, fig.height= 4}
+
+library(showtext)
+font_add_google(name = "Special Elite")
+font_add_google(name = "Nosifer")
+
+gun_bar <- weap_gun %>% 
+  slice(1:5)%>% 
+  ggplot( aes(x = fct_reorder(weapon_desc, count), y = count)) +
+  geom_col(fill = "black") +
+  geom_text(aes(label = count),family = "Special Elite", hjust = -.2, color = "red4", face = "bold", size = 5) +
+  coord_flip() +
+  theme_classic()+
+  labs(title = "Crime Description with Gun Reports"
+       
+       ) +
+  scale_y_continuous(limits = c(0, 20000)) +
+  theme(axis.title.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.line.y = element_blank(), 
+        axis.line.x = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.title = element_text(family = "Nosifer",
+                                  size = 15, 
+                                  color = "red4",
+                                  face = "bold"),
+        axis.text = element_text(family = "Special Elite", 
+                                 size = 12),
+        axis.title = element_text(family = "Special Elite"),
+        plot.margin = margin(.5,4,.5,.5, "cm")
+        )  +
+  
+
+showtext_auto()
+
+```
+
+```{r}
+
+library(ggforce)
+
+race_pie <- la_crimes %>%
+  count(race) %>%
+  ggplot() +
+  ggforce::geom_arc_bar(
+    aes(x0 = 0, y0 = 0, r0 = 0.8, r = 1, amount = n, fill = race), #,explode = focus
+   stat = "pie") +
+  theme_void()+
+  scale_fill_grey() +                           # (values = c("red", "green", "blue", "yellow", "orange", "purple")) +
+  theme(
+    legend.text = element_text(size=10, family = "Special Elite"),
+    legend.title = element_text(face="bold", size=10, family = "Special Elite"),
+    legend.key.size = unit(0.35, 'cm'),
+    legend.position = c(0.6,0.45),
+    legend.justification = c(1, 0),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.line = element_blank()
+    )
+
+```
+
+```{r}
+area_pie <- la_crimes %>%
+  count(area_name) %>%
+  ggplot() +
+  ggforce::geom_arc_bar(
+    aes(x0 = 0, y0 = 0, r0 = 0.8, r = 1, amount = n, fill = area_name), #,explode = focus
+   stat = "pie") +
+  theme_void()+
+  scale_fill_grey() +                           # (values = c("red", "green", "blue", "yellow", "orange", "purple")) +
+  theme(
+    legend.text = element_text(size=10, family = "Special Elite"),
+    legend.title = element_text(face="bold", size=10, family = "Special Elite"),
+    legend.key.size = unit(0.35, 'cm'),
+    legend.position = c(0.6,0.45),
+    legend.justification = c(1, 0),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.line = element_blank()
+    )
+```
+
+```{r adding plots together now!}
+#lets add my plots together now
+final <- gun_bar + race_pie + area_pie
+
+
+```

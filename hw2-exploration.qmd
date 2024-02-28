@@ -1,10 +1,19 @@
 ---
-title: HW2: exploration
-author: Rosemary Juarez
+title: 'HW2: exploration'
+author: 'Rosemary Juarez'
+format:
+  html:
+    embed-resources: true
 ---
 
-
 ```{r}
+# setting my chunk options
+knitr::opts_chunk$set( echo = TRUE, message = FALSE, warning = FALSE)
+
+```
+
+
+```{r, include=FALSE}
 #using these three packages
 library(tidyverse)
 library(janitor)
@@ -17,7 +26,7 @@ library(ggridges)
 la_crimes <- read_csv("C:/Users/rosem/Documents/MEDS/Courses/EDS-240/HW/Juarez-eds240-HW4/data/Crime_Data_from_2020_to_Present_20240131.csv")
 ```
 ## Data wrangling
-currently still a work-in progress as I continue on
+currently still a work-in progress as I continue on during the next few weeks of winter quarter
 ```{r}
 
 #clean up all the column names
@@ -27,6 +36,10 @@ la_crimes <- clean_names(la_crimes)
 la_crimes <- la_crimes %>% 
   filter(vict_age > 0)
 
+
+
+#check unique victim sex
+unique(la_crimes$vict_sex)
 #I want to incllude all values for victim sex, however to first test out my plots, i want to view just male and female for simplicity
 la_crimes_test <- la_crimes %>% 
   filter(vict_sex %in% c('M', 'F'))
@@ -41,10 +54,16 @@ la_crimes_test <- la_crimes %>%
 here I will be exploring my data for a bit. May not be the neatest, but essential for building my three preliminary plots before polishing up one plot
 
 ```{r}
+
+#to take a look at my data's information
 glimpse(la_crimes)
 
+
+#seeing the number of unique area names in la
 unique(la_crimes$area_name)
 
+
+#to check the number of unique sex variables. X = no answer taken, not sure what 'H' is.
 unique(la_crimes$vict_sex)
 ```
 
@@ -71,17 +90,27 @@ la_crimes %>%
           #plot 2: technical graph
 #======================================
 
+#THIS graph i would consider technical since we can compare the values between male and female. Since my data is purely categorical, I cannot do much statistical analysis.
 
+
+
+#plotting for  victim age vs victim sex using a bar chart
 la_crimes_test %>% 
   ggplot(aes(x = vict_age, fill = vict_sex)) + 
   geom_bar(position = 'dodge2') +
-  scale_fill_manual(values = c('seagreen', 'purple'))
+  scale_fill_manual(values = c('seagreen', 'purple')) +  # i chose these two colors to avoid pink and blue
+  labs(x = 'Victim Age', y = 'Count',
+       fill = 'Victim Sex', title = 'LA Crimes: Victim age count',
+       subtitle = '2020 - Present') +
+  theme(plot.title = element_text(size = 20, family = 'mono', face = 'bold')) +
+  theme_classic()
 
 ```
 
 
 
 ```{r}
+
 #=====================================
           #plot 3: for presentation
 #======================================
@@ -92,10 +121,30 @@ la_crimes_test %>%
   geom_col() +
   coord_flip()
 
+#since it aggregated my ages together, it was not an overall good plot to choose. I will have to find another categorical chart to accurately portray this. Still am not sure of which plot
 
 
 
 ```
+
+```{r}
+
+
+#####===================================================
+#####
+#####             extra exploration
+#####
+#####===================================================
+library(ggmosaic) #ggmosaic is not included in tidyverse unfortunately.
+
+
+#plotting to show density. Need to research if i can do geom_density using categoricals. Otherwise, this is just exploration using other means of plotting categorical data.
+la_crimes %>% 
+  ggplot() +
+  geom_mosaic(aes(x = product(status_desc, vict_age), fill = status_desc)) +
+  coord_flip()
+```
+
 
 1. What have you learned about your data? Have any potentially interesting patterns emerged? (5-8 sentences)
 
@@ -103,10 +152,10 @@ from my premilinary visual analysis, it seems like i have a lot of categorical v
 
 2. In HW #1, you outlined some questions that you wanted to answer using these data. Have you made any strides towards answering those questions? If yes, how so? If no, what next steps do you need to take (e.g. I need to create X plot type, I still need to track down Y data, I need to restructure existing data so that you can visualize it in Z ways, etc.)? (8-12 sentences)
 
-From my outlined questions, It seems like i would need to rethink my plan. I have so much categorical data, so i will have to do a full join with another data set to balance it out. I am thinking about including temperature data, and join by date. I think the temperature data could be useful for creating scatterplots and regression lines. My main question in that case would change from exploring the social aspect of crime to how temperature can play a role in crimes in la. I can also include a map to further help with my analysis.
+From my outlined questions, It seems like i would need to rethink my plan. I have so much categorical data, so i will have to do a full join with another data set to balance it out. I am thinking about including temperature data, and join by date. I think the temperature data could be useful for creating scatter plots and regression lines. My main question in that case would change from exploring the social aspect of crime to how temperature can play a role in crimes in la. I can also include a map to further help with my analysis. If i were to include a map, i would try to created a spatial autocorrelation analysis, which should hopefully work. However that would be a stretch goal. My overall goals would be to find correlations between certain variables post-join and analyze from there.
 
 
 3. What challenges do you foresee encountering with your data? These can be data wrangling and / or visualization challenges. (4-6 sentences)
 
-I think like i mentioned previously, my biggest challenge will be figuring out how to work with so much categorical data. My solution will likely be to join in some temperature data to help balance things out. I will also include a mapping aspect to help spatially visualize. I will also have to deal with multiple NA values, as there are a lot.
+I think like i mentioned previously, my biggest challenge will be figuring out how to work with so much categorical data. My solution will likely be to join in some temperature data to help balance things out. I will also include a mapping aspect to help spatially visualize. I will also have to deal with multiple NA values, as there are a lot. One final aspect is that it is hard to find detailed temperature data for free.
 
