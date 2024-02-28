@@ -209,7 +209,11 @@ top_10_bar <- crime_desc %>%
        ) +
   theme(axis.title.y = element_blank(),
         axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank()
+        axis.ticks.y = element_blank(),
+        plot.title = element_text(family = "Nosifer",
+                                  size = 15, 
+                                  color = "red4",
+                                  face = "bold")
         
         
         )
@@ -325,7 +329,7 @@ area_pie <- la_crimes %>%
 
 ```{r adding plots together now!}
 #lets add my plots together now
-final <- gun_bar + race_pie + area_pie
+top_10_bar / gun_bar + area_pie + race_pie
 
 
 ```
