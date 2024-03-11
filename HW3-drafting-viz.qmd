@@ -135,16 +135,19 @@ la_crimes <- la_crimes %>%
                            ))
 
 
-```
+#-----------------------------
+#   time wrangling
+#-----------------------------
 
-```{r}
-#remove time component
+#remove time, and keeps date only
 la_crimes <- la_crimes %>% 
   mutate(date_occ = as.Date(mdy_hms(date_occ)))
 
+#create a new column for month
 la_crimes <- la_crimes %>% 
   mutate(month = month(date_occ))
 
+#convert integers to factors
 la_crimes$month <- as.factor(la_crimes$month)
 la_crimes$vict_age <- as.factor(la_crimes$vict_age)
 
@@ -156,12 +159,7 @@ la_crimes <- la_crimes %>%
                                 labels = c('January', 'February', 'March', 'April','May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'))
 )
 
-min(la_crimes$date_occ)
-max(la_crimes$date_occ)
 
-```
-
-```{r}
 #====================================
 #     new data frames for plotting
 #====================================
@@ -274,8 +272,8 @@ weap_graph <- weap_gun %>%
   geom_text(aes(label = count),family = "Special Elite", hjust = -.2, color = "red4", size = 9) +
   coord_flip() +
   theme_classic()+
-  labs(title = "Crime Reports involving Firearms",
-       subtitle = "From 2020-2024, There were 589,000 individual crime reports. From those reports, 24,000 involve firearm weapons."
+  labs(title = "Crime Reports involving Firearms"#,
+       #subtitle = "From 2020-2024, There were 589,000 individual crime reports. From those reports, 24,000 involve firearm weapons."
        ) +
   scale_y_continuous(limits = c(0, 20000)) +
   theme(axis.title.y = element_blank(),
@@ -306,6 +304,37 @@ ggsave(filename =  "~/../Downloads/gun_ex.png", weap_graph, width = 12, height =
 weap_graph
 
 
+```
+
+```{r}
+
+
+la_locations <- la_crimes %>% 
+  st_as_sf(coords = c("lon", "lat"), crs= 2229)
+
+st_crs(la_locations)
+
+```
+
+```{r}
+library(sf)
+library(tmap)
+ca_shape <- st_read("C:/Users/rosem/Downloads/tl_2023_06_tract/tl_2023_06_tract.shp")
+
+la_shape <- ca_shape %>% 
+  filter(COUNTYFP == "037")
+
+la_shape <- st_transform(la_shape, crs = "EPSG:2229")
+
+la_shape <- st_transform(la_shape, crs = 2229)
+
+plot(la_locations$area)
+```
+
+```{r}
+
+tm_shape(la_locations)+
+  tm_polygons()
 ```
 
 ```{r fig.width=8, fig.height=6}
